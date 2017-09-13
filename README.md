@@ -6,7 +6,6 @@ TF Serving support for Flask applications
 
     import numpy as np
     from flask import Flask
-    from tensorflow.python.saved_model import signature_constants
 
     from flask_tfserving import TFServing
 
