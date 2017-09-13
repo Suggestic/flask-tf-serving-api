@@ -39,7 +39,7 @@ class TFServing(object):
         app.config.setdefault(
             self.key('SIGNATURE'),
             signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
-        app.config.setdefault(self.key('NAME'), None)
+        app.config.setdefault(self.key('MODEL'), None)
 
         try:
             int(app.config[self.key('PORT')])
@@ -65,7 +65,7 @@ class TFServing(object):
 
     def predict(self, inputs, name=None, signature=None, timeout=None):
         request = predict_pb2.PredictRequest()
-        request.model_spec.name = name or current_app.config[self.key('NAME')]
+        request.model_spec.name = name or current_app.config[self.key('MODEL')]
         request.model_spec.signature_name = signature or current_app.config[self.key(
             'SIGNATURE')]
 
