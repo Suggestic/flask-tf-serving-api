@@ -17,7 +17,5 @@ TF Serving support for Flask applications
     @app.route('/')
     def iris_classification():
         prediction = serving.predict(
-            inputs={'input': np.matrix([ 5.1,  3.5,  1.4,  0.2])},
-            name='iris',
-            signature=signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
-        return prediction['output'].argmax()
+            inputs={'input': np.matrix([5.1, 3.5, 1.4, 0.2])}, model='iris')
+            return prediction['output'].argmax()
