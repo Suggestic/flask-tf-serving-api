@@ -5,6 +5,7 @@ import tensorflow as tf
 from flask import current_app
 from google.protobuf.json_format import MessageToJson
 from grpc.beta import implementations
+from tensorflow.python.saved_model import signature_constants
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
 
 
@@ -60,11 +61,12 @@ class TFServing(object):
             channel)
         app.extensions['tfserving'][config_prefix] = self.stub
 
-    def predict(self, inputs, name=None, signature=None, timeout=None):
+    def predict(self, inputs, model=None, signature=None, timeout=None):
         request = predict_pb2.PredictRequest()
         request.model_spec.name = name or current_app.config[self.key('NAME')]
-        request.model_spec.signature_name = signature or current_app.config[self.key(
-            'SIGNATURE')]
+        request.model_spec.signature_name = signature or current_app.config.get(
+            self.key('SIGNATURE'),
+            signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
 
         for input_name in inputs:
             _in = inputs[input_name]
