@@ -13,8 +13,9 @@ setup(
         'Topic :: Deep Learning :: AI',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    keywords='deep learning label ontology classification regression label',
-    #download_url='http://github.com/Suggestic/mlom',
+    keywords=
+    'flask deep learning prediction classification extension tensorflow serving',
+    download_url='http://github.com/Suggestic/flask-tfserving',
     author='Ismael Fernández',
     author_email='ismael@suggestic.com',
     packages=find_packages(),
