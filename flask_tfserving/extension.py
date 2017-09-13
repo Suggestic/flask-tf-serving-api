@@ -36,8 +36,10 @@ class TFServing(object):
         app.config.setdefault(self.key('HOST'), 'localhost')
         app.config.setdefault(self.key('PORT'), 8500)
         app.config.setdefault(self.key('TIMEOUT'), 5.0)
+        app.config.setdefault(
+            self.key('SIGNATURE'),
+            signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
         app.config.setdefault(self.key('NAME'), None)
-        app.config.setdefault(self.key('SIGNATURE'), None)
 
         try:
             int(app.config[self.key('PORT')])
@@ -61,12 +63,11 @@ class TFServing(object):
             channel)
         app.extensions['tfserving'][config_prefix] = self.stub
 
-    def predict(self, inputs, model=None, signature=None, timeout=None):
+    def predict(self, inputs, name=None, signature=None, timeout=None):
         request = predict_pb2.PredictRequest()
         request.model_spec.name = name or current_app.config[self.key('NAME')]
-        request.model_spec.signature_name = signature or current_app.config.get(
-            self.key('SIGNATURE'),
-            signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
+        request.model_spec.signature_name = signature or current_app.config[self.key(
+            'SIGNATURE')]
 
         for input_name in inputs:
             _in = inputs[input_name]
