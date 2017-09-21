@@ -73,7 +73,7 @@ class TFServing(object):
             _in = inputs[input_name]
             request.inputs[input_name].CopyFrom(
                 tf.contrib.util.make_tensor_proto(
-                    _in, shape=_in.shape, dtype=tf.float32))
+                    _in, shape=_in.shape))
 
         probas_message = json.loads(
             MessageToJson(
