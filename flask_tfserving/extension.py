@@ -6,6 +6,7 @@ from flask import current_app
 from google.protobuf.json_format import MessageToJson
 from grpc.beta import implementations
 from tensorflow.python.saved_model import signature_constants
+
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
 
 
@@ -40,6 +41,7 @@ class TFServing(object):
             self.key('SIGNATURE'),
             signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
         app.config.setdefault(self.key('MODEL'), None)
+        app.config.setdefault(self.key('VERSION'), None)
 
         try:
             int(app.config[self.key('PORT')])
@@ -53,32 +55,35 @@ class TFServing(object):
 
         self.host = app.config[self.key('HOST')]
         self.port = app.config[self.key('PORT')]
-        host = self.host
-        port = self.port
 
-        #print host, port
-
-        channel = implementations.insecure_channel(host, port)
+        channel = implementations.insecure_channel(self.host, self.port)
         self.stub = prediction_service_pb2.beta_create_PredictionService_stub(
             channel)
         app.extensions['tfserving'][config_prefix] = self.stub
 
-    def predict(self, inputs, name=None, signature=None, timeout=None):
+    def predict(self,
+                inputs,
+                name=None,
+                signature=None,
+                version=None,
+                timeout=None):
         request = predict_pb2.PredictRequest()
         request.model_spec.name = name or current_app.config[self.key('MODEL')]
         request.model_spec.signature_name = signature or current_app.config[self.key(
             'SIGNATURE')]
+        version = version or current_app.config[self.key('VERSION')]
+        if version:
+            request.model_spec.version.value = version
 
         for input_name in inputs:
             _in = inputs[input_name]
             request.inputs[input_name].CopyFrom(
-                tf.contrib.util.make_tensor_proto(
-                    _in, shape=_in.shape))
+                tf.contrib.util.make_tensor_proto(_in, shape=_in.shape))
 
         probas_message = json.loads(
             MessageToJson(
-                self.stub.Predict(request, timeout or
-                                  current_app.config[self.key('TIMEOUT')])))
+                self.stub.Predict(request, timeout
+                                  or current_app.config[self.key('TIMEOUT')])))
 
         prediction = {}
         for out in probas_message['outputs']:
