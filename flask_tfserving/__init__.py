@@ -1,1 +1,1 @@
-from extension import TFServing
+from .extension import TFServing
