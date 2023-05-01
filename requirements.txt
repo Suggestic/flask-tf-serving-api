@@ -15,4 +15,4 @@ tensorflow==1.2.1
 tensorflow-serving-api==1.0.0
 tensorflow-tensorboard==0.1.6
 Werkzeug==0.12.2
-Flask==0.12.2
+Flask==2.3.2
