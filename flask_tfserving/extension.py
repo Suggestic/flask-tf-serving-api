@@ -10,35 +10,36 @@ from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
 
 
 class TFServing(object):
-    """
-    Automatically connects to TF Serving using parameters defined in Flask
-    configuration.
-    """
+    """Automatically connects to TF Serving using parameters defined in
+    Flask configuration"""
 
     def __init__(self, app=None, config_prefix='TFSERVING'):
         if app is not None:
             self.init_app(app, config_prefix)
 
+        self.host = None
+        self.port = None
+        self.stub = None
+        self.config_prefix = None
+
     def key(self, suffix):
         return '%s_%s' % (self.config_prefix, suffix)
 
     def init_app(self, app, config_prefix='TFSERVING'):
-
         if 'tfserving' not in app.extensions:
             app.extensions['tfserving'] = {}
 
         if config_prefix in app.extensions['tfserving']:
-            raise Exception(
-                'duplicate config_prefix "%s"' % self.config_prefix)
+            raise Exception('duplicate config_prefix "%s"' % self.config_prefix)
 
         self.config_prefix = config_prefix
-
         app.config.setdefault(self.key('HOST'), 'localhost')
         app.config.setdefault(self.key('PORT'), 8500)
         app.config.setdefault(self.key('TIMEOUT'), 5.0)
         app.config.setdefault(
             self.key('SIGNATURE'),
-            signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY)
+            signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
+        )
         app.config.setdefault(self.key('MODEL'), None)
 
         try:
@@ -56,11 +57,10 @@ class TFServing(object):
         host = self.host
         port = self.port
 
-        #print host, port
-
         channel = implementations.insecure_channel(host, port)
         self.stub = prediction_service_pb2.beta_create_PredictionService_stub(
-            channel)
+            channel
+        )
         app.extensions['tfserving'][config_prefix] = self.stub
 
     def predict(self, inputs, name=None, signature=None, timeout=None):
@@ -75,14 +75,14 @@ class TFServing(object):
                 tf.contrib.util.make_tensor_proto(
                     _in, shape=_in.shape))
 
-        probas_message = json.loads(
-            MessageToJson(
-                self.stub.Predict(request, timeout or
-                                  current_app.config[self.key('TIMEOUT')])))
+        predict = self.stub.Predict(
+            request,
+            timeout or current_app.config[self.key('TIMEOUT')]
+        )
+        probas_message = json.loads(MessageToJson(predict))
 
         prediction = {}
         for out in probas_message['outputs']:
-
             dim = tuple([
                 int(i['size'])
                 for i in probas_message['outputs'][out]['tensorShape']['dim']
